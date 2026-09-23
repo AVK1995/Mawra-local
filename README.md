@@ -3,12 +3,13 @@
 A Next.js (App Router) landing-page funnel for **Coach Mawra** (women's fat-loss &
 identity transformation), targeted at **UK traffic**. Visitors read the landing
 page, open a registration modal (name, email, phone, town/city), and on submit the
-lead is saved to a Google Sheet and the visitor is forwarded to `/wa-dm`, which
-hands them to Mawra on WhatsApp with a pre-filled message.
+lead is saved to a Google Sheet and the visitor is forwarded to `/book-a-call`
+to pick a Calendly slot, then on to `/thank-you` once they book.
 
 **Flow:** Ads (UK) → Landing → registration modal → `/api/lead` (writes to Google
-Sheet) → `/wa-dm` (WhatsApp hand-off). UTM / click-id params are captured on the
-landing page and carried through every step into the sheet.
+Sheet) → `/book-a-call` (Calendly) → `/thank-you`. UTM / click-id params are
+captured on the landing page and carried through every step into the sheet. The
+name and email are also handed to Calendly as prefill so nothing is retyped.
 
 > **This funnel is completely free.** There is no payment step, no checkout, no
 > Razorpay and no qualification / disqualification branch anywhere in it. Every
@@ -49,13 +50,15 @@ Create `.env.local` and fill in. Summary of what's required:
 
 | Variable | Required? | Purpose |
 |---|---|---|
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | **Yes** | Mawra's WhatsApp number, full international format (e.g. `447911123456`). Non-digits are stripped. |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | **Yes** | Mawra's WhatsApp number, full international format (e.g. `447911123456`). Non-digits are stripped. Used by the "can't find a time?" card. |
 | `NEXT_PUBLIC_WHATSAPP_MESSAGE` | **Yes** | The message pre-filled in the user's WhatsApp. See the template syntax below. |
 | `LEAD_WEBHOOK_URL` | **Yes** | Where leads are POSTed → Google Sheet (see below) |
 | `NEXT_PUBLIC_GA_ID` | optional | Google Analytics 4 ID (nothing loads if blank) |
 | `NEXT_PUBLIC_CLARITY_ID` | optional | Microsoft Clarity ID |
 | `META_PIXEL_ID` / `META_CAPI_ACCESS_TOKEN` | optional | Meta Pixel + Conversions API for FB/IG ads |
-| `NEXT_PUBLIC_CALENDLY_URL` | optional | Only used by `/book-a-call`, which is no longer in the funnel |
+| `NEXT_PUBLIC_CALENDLY_URL` | **Yes** | The Calendly event embedded on `/book-a-call`. Without it nobody can book. |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | optional | Shown on the "can't find a time?" card. Defaults to transformationsandbeyond@gmail.com. |
+| `NEXT_PUBLIC_WHATSAPP_SLOT_MESSAGE` | optional | Pre-filled text for a slot request from that card. |
 
 > After changing env vars, **restart `npm run dev`** (or redeploy). The two
 > `NEXT_PUBLIC_WHATSAPP_*` values are inlined at build time, so changing the
@@ -63,10 +66,22 @@ Create `.env.local` and fill in. Summary of what's required:
 
 ---
 
-## The WhatsApp hand-off (`/wa-dm`)
+## The booking step (`/book-a-call`)
 
-This is the final page of the funnel — the new thank-you page. It confirms the
-registration, then hands the visitor to WhatsApp:
+Embeds Calendly from `NEXT_PUBLIC_CALENDLY_URL`, with the registrant's name and
+email prefilled from the form and the UTMs appended so the booking is attributed.
+When Calendly posts `event_scheduled`, the embed fires GA4 `call_booked` + the
+Meta Schedule CAPI event and forwards to `/thank-you` itself — so keep the
+Calendly event on its **default confirmation page** (no custom redirect), or the
+visitor gets a "leaving Calendly" interstitial.
+
+Underneath the calendar is a **"Cannot find a time that works for you?"** card
+with WhatsApp and email buttons, for anyone whose preferred slot isn't listed.
+
+## The WhatsApp hand-off (`/wa-dm`) — not currently in the funnel
+
+Kept in the repo but nothing links to it. It confirms the registration, then
+hands the visitor to WhatsApp:
 
 - **Mobile** → `wa.me/<number>?text=…`, which opens the installed WhatsApp app.
 - **Desktop** → `web.whatsapp.com/send?phone=…&text=…`, which opens WhatsApp Web
@@ -172,7 +187,9 @@ app/
   api/
     lead/route.ts          Receives the registration, writes to the Sheet webhook
     meta/*                 Server-side Meta CAPI helper routes
-  wa-dm/                   WhatsApp hand-off — the final page of the funnel
+  book-a-call/             Calendly booking step (+ embed, slot-help card)
+  thank-you/               Booking confirmation — the final page of the funnel
+  wa-dm/                   WhatsApp hand-off (kept, not in the funnel)
   privacy / terms          Legal pages
   _lib/                    attribution, country list, analytics, meta-capi
 public/
@@ -185,9 +202,8 @@ apps-script/
 
 ### Not in the funnel (kept in the repo, unlinked)
 
-`app/book-a-call/` (Calendly), `app/disqualified/` and `app/thank-you/` are left
-over from the previous funnel. Nothing links to them and no CTA routes there — they
-are kept only in case the Calendly flow is wanted again. Delete them freely.
+`app/wa-dm/` (the WhatsApp hand-off) and `app/disqualified/` are not linked from
+anywhere and no CTA routes to them. Delete them freely.
 
 > **CSS cache busting:** `funnel.css` is linked as `?v=N` in `app/layout.tsx`.
 > Bump `N` whenever you edit `funnel.css` so browsers fetch the new version.
@@ -196,11 +212,15 @@ are kept only in case the Calendly flow is wanted again. Delete them freely.
 
 ## Still to do before go-live
 
-1. Set `NEXT_PUBLIC_WHATSAPP_NUMBER` + `NEXT_PUBLIC_WHATSAPP_MESSAGE` and
-   `LEAD_WEBHOOK_URL` (else leads aren't saved).
-2. Re-map the Pabbly / Sheet columns to the new payload (see above).
-3. Review the landing-page copy for UK audience (currency, spelling, claims).
-4. Replace the remaining placeholder images (hero, story, logo, favicon).
-5. Update the legal pages (support email, business name) — and note UK/GDPR
+1. **Set `NEXT_PUBLIC_CALENDLY_URL`** — without it `/book-a-call` shows
+   "Booking calendar coming soon" and nobody can book.
+2. In Calendly, keep the event confirmation on the **default page** (no custom
+   redirect), so the embed's own forward to `/thank-you` is the only one.
+3. Set `LEAD_WEBHOOK_URL` (else leads aren't saved) and
+   `NEXT_PUBLIC_WHATSAPP_NUMBER` (used by the "can't find a time?" card).
+4. Re-map the Pabbly / Sheet columns to the new payload (see above).
+5. Review the landing-page copy for UK audience (currency, spelling, claims).
+6. Replace the remaining placeholder images (hero, story, logo, favicon).
+7. Update the legal pages (support email, business name) — and note UK/GDPR
    consent wording now lives in the modal's consent line.
-6. Deploy to Vercel + custom domain.
+8. Deploy to Vercel + custom domain.

@@ -198,11 +198,7 @@ export default function WaDmPage() {
             </div>
 
             {/* ── Credentials ── */}
-            {/* Wrapped, because .hero-cred-pills carries a `margin-top: 10px
-                !important` from the landing-page hero that an inline style can't
-                beat — the spacing has to live on a parent. */}
-            <div style={{ marginTop: 52 }}>
-            <div className="hero-cred-pills" style={{ justifyContent: "center" }}>
+            <div className="hero-cred-pills cred-row-standalone" style={{ justifyContent: "center" }}>
               <span className="hero-cred-pill">
                 <span className="cpd" aria-hidden="true"></span>TEDx Speaker
               </span>
@@ -213,7 +209,6 @@ export default function WaDmPage() {
                 <span className="cpd" aria-hidden="true"></span>60+ Kilos Lost and
                 Maintained
               </span>
-            </div>
             </div>
 
             {/* Secondary escape hatch for anyone who scrolled all the way down. */}

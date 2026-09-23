@@ -6505,3 +6505,151 @@ a.vsl-box.hero-portrait { cursor: pointer; display: block; text-decoration: none
   .wa-btn { animation: none; }
   .wa-faq-item summary::after { transition: none; }
 }
+
+/* ---------- Credential pills as a standalone row on inner pages ----------
+   The compact-hero block sets `margin-top: 10px !important` on
+   .hero-cred-pills (and `0 !important` above 1000px) for the landing hero.
+   Those selectors are unscoped, so they leak onto every inner page that reuses
+   the class and leave the pills jammed against whatever sits above them. This
+   modifier needs both !important and higher specificity to win. */
+.hero-cred-pills.cred-row-standalone {
+  margin-top: 46px !important;
+  padding-top: 30px;
+  border-top: 1px solid rgba(15, 23, 42, .09);
+  gap: 10px;
+}
+@media (max-width: 560px) {
+  .hero-cred-pills.cred-row-standalone { margin-top: 34px !important; padding-top: 24px; }
+}
+
+/* ---------- "Can't find a time?" fallback card (/book-a-call) ---------- */
+.slot-help {
+  /* No max-width: .cal-frame above it is width:100% of .wrap.narrow, so this
+     matches the calendar edge-for-edge. Type is scaled up to suit the width. */
+  width: 100%;
+  margin: 44px auto 0;
+  padding: 40px 38px 34px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, .1);
+  box-shadow: 0 24px 56px -34px rgba(15, 23, 42, .32);
+  text-align: center;
+}
+.slot-help-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 11px;
+  margin-bottom: 15px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, .08);
+  border: 1px solid rgba(220, 38, 38, .32);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--brand-deep, #B91C1C);
+}
+.slot-help-eyebrow .dot {
+  position: relative;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #DC2626;
+  box-shadow: 0 0 8px #DC2626;
+  flex-shrink: 0;
+}
+.slot-help-eyebrow .dot::before {
+  content: "";
+  position: absolute; inset: -4px;
+  border-radius: 50%; background: #DC2626;
+  opacity: .4; animation: dot-pulse 2s ease-out infinite;
+}
+.slot-help-title {
+  margin: 0 0 12px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: clamp(25px, 3.6vw, 36px);
+  line-height: 1.18;
+  letter-spacing: -.02em;
+  color: var(--ink, #111827);
+}
+.slot-help-title .accent { color: var(--brand, #DC2626); }
+.slot-help-body {
+  max-width: 660px;
+  margin: 0 auto 26px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink-soft, #475569);
+}
+.slot-help-body strong { color: var(--ink, #111827); font-weight: 600; }
+
+.slot-help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.slot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 17px 34px;
+  border-radius: 999px;
+  font-family: "Poppins", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.slot-btn svg { width: 21px; height: 21px; flex: none; }
+.slot-btn-wa {
+  background: linear-gradient(180deg, #25D366 0%, #1EBE5A 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 30px -12px rgba(37, 211, 102, .7);
+}
+.slot-btn-wa:hover {
+  transform: translateY(-2px);
+  color: #fff;
+  box-shadow: 0 18px 38px -12px rgba(37, 211, 102, .82);
+}
+.slot-btn-mail {
+  background: #ffffff;
+  color: var(--ink, #111827);
+  border: 1.5px solid rgba(15, 23, 42, .16);
+}
+.slot-btn-mail:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 23, 42, .3);
+  color: var(--ink, #111827);
+}
+
+.slot-help-contacts {
+  margin: 22px 0 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13.5px;
+  letter-spacing: .04em;
+  color: var(--muted, #64748B);
+}
+.slot-help-contacts a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.slot-help-contacts a:hover { color: var(--brand, #DC2626); }
+.slot-help-sep { margin: 0 8px; opacity: .5; }
+
+@media (max-width: 720px) {
+  /* Scale the desktop-width type back down once the card is phone-width. */
+  .slot-help { padding: 30px 20px 26px; border-radius: 15px; margin-top: 34px; }
+  .slot-help-body { font-size: 15.5px; margin-bottom: 22px; }
+  .slot-btn { padding: 16px 22px; font-size: 15.5px; }
+  .slot-help-eyebrow { font-size: 9.5px; }
+}
+@media (max-width: 560px) {
+  .slot-help-actions { flex-direction: column; gap: 12px; }
+  .slot-btn { width: 100%; }
+  .slot-help-contacts { font-size: 11.5px; line-height: 1.9; }
+  .slot-help-sep { display: block; height: 0; overflow: hidden; margin: 0; }
+}

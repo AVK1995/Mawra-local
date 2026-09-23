@@ -77,8 +77,8 @@ function validate(form: FormState): { field: keyof FormState; message: string } 
  * delegation.
  *
  * On submit the lead is written to the CRM webhook (via /api/lead) along with
- * its UTM / Meta attribution, then the visitor is forwarded to /wa-dm, which
- * hands them off to Mawra on WhatsApp with a pre-filled message.
+ * its UTM / Meta attribution, then the visitor is forwarded to /book-a-call to
+ * pick a Calendly slot, and on to /thank-you once they book.
  *
  * There is no payment step, no qualification questions and no disqualify branch
  * anywhere in this funnel — every completed registration is a lead.
@@ -229,7 +229,7 @@ export default function LeadModal() {
       }
 
       // Forward all landing-page URL params (+ any stored UTMs) so attribution
-      // rides through to the WhatsApp hand-off page.
+      // rides through to the booking page and on into /thank-you.
       const forward = new URLSearchParams(
         typeof window !== "undefined" ? window.location.search : ""
       );
@@ -238,9 +238,12 @@ export default function LeadModal() {
         if (v && !forward.get(k)) forward.set(k, v);
       }
       forward.set("lead", leadId);
-      // First name personalises the WhatsApp message on the next page.
       forward.set("fn", form.first_name.trim());
-      window.location.href = `/wa-dm?${forward.toString()}`;
+      // Handed to Calendly as prefill so the visitor doesn't retype what they
+      // just gave us — retyping on the booking step is where bookings get lost.
+      forward.set("nm", `${form.first_name} ${form.last_name}`.trim());
+      forward.set("em", form.email.trim());
+      window.location.href = `/book-a-call?${forward.toString()}`;
     } catch (err) {
       setSubmitting(false);
       setError(err instanceof Error ? err.message : "Something went wrong.");
